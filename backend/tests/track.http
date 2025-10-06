@@ -1,0 +1,85 @@
+### Health Tracking Routes Tests
+### Make sure your server is running on http://localhost:5000
+
+@baseUrl = http://localhost:5000/api/track
+@authToken = YOUR_TOKEN_HERE
+
+### Get all health tracking entries (requires auth)
+GET {{baseUrl}}/
+Authorization: Bearer {{authToken}}
+
+### Get entries without auth (should fail)
+GET {{baseUrl}}/
+
+### Create new health tracking entry (requires auth)
+POST {{baseUrl}}/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "painLevel": 3,
+  "energyLevel": 7,
+  "notes": "Feeling better today"
+}
+
+### Create entry with minimal data (no notes)
+POST {{baseUrl}}/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "painLevel": 5,
+  "energyLevel": 6
+}
+
+### Create entry with invalid pain level (too high)
+POST {{baseUrl}}/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "painLevel": 15,
+  "energyLevel": 7,
+  "notes": "Invalid pain level"
+}
+
+### Create entry with invalid pain level (too low)
+POST {{baseUrl}}/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "painLevel": 0,
+  "energyLevel": 7,
+  "notes": "Invalid pain level"
+}
+
+### Create entry with invalid energy level (too high)
+POST {{baseUrl}}/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "painLevel": 3,
+  "energyLevel": 15,
+  "notes": "Invalid energy level"
+}
+
+### Create entry with missing required fields
+POST {{baseUrl}}/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "painLevel": 3
+}
+
+### Create entry without auth (should fail)
+POST {{baseUrl}}/
+Content-Type: application/json
+
+{
+  "painLevel": 3,
+  "energyLevel": 7,
+  "notes": "This should fail"
+}

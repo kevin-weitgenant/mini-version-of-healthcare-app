@@ -1,0 +1,16 @@
+### Doctors Routes Tests
+### Make sure your server is running on http://localhost:5000
+
+@baseUrl = http://localhost:5000/api/doctors
+
+### Get all doctors
+GET {{baseUrl}}/
+
+### Get doctor by ID (replace 1 with actual doctor ID)
+GET {{baseUrl}}/1
+
+### Get doctor by non-existent ID
+GET {{baseUrl}}/999
+
+### Get doctor by invalid ID (non-numeric)
+GET {{baseUrl}}/invalid

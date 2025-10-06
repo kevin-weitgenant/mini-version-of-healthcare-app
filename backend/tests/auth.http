@@ -1,0 +1,71 @@
+### Auth Routes Tests
+### Make sure your server is running on http://localhost:5000
+
+@baseUrl = http://localhost:5000/api/auth
+
+### Register a new user
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "name": "Test User",
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+### Register with invalid email
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "name": "Test User",
+  "email": "invalid-email",
+  "password": "password123"
+}
+
+### Register with missing fields
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "name": "Test User"
+}
+
+### Login with valid credentials
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+### Login with invalid credentials
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "wrongpassword"
+}
+
+### Login with invalid email format
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "email": "invalid-email",
+  "password": "password123"
+}
+
+### Get current user (requires auth token)
+### Replace YOUR_TOKEN_HERE with the token from login response
+GET {{baseUrl}}/me
+Authorization: Bearer YOUR_TOKEN_HERE
+
+### Get current user without token (should fail)
+GET {{baseUrl}}/me
+
+### Get current user with invalid token (should fail)
+GET {{baseUrl}}/me
+Authorization: Bearer invalid_token

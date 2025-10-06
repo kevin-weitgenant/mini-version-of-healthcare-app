@@ -1,0 +1,86 @@
+### Appointments Routes Tests
+### Make sure your server is running on http://localhost:5000
+
+@baseUrl = http://localhost:5000/api/appointments
+@authToken = YOUR_TOKEN_HERE
+
+### Get all appointments (requires auth)
+GET {{baseUrl}}/
+Authorization: Bearer {{authToken}}
+
+### Get appointments without auth (should fail)
+GET {{baseUrl}}/
+
+### Create new appointment (requires auth)
+POST {{baseUrl}}/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "doctorId": 1,
+  "appointmentDate": "2024-02-15",
+  "appointmentTime": "10:30 AM",
+  "visitReason": "Regular checkup",
+  "timezone": "America/New_York"
+}
+
+### Create appointment with invalid doctor ID
+POST {{baseUrl}}/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "doctorId": 999,
+  "appointmentDate": "2024-02-15",
+  "appointmentTime": "10:30 AM",
+  "visitReason": "Regular checkup",
+  "timezone": "America/New_York"
+}
+
+### Create appointment with missing fields
+POST {{baseUrl}}/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "doctorId": 1,
+  "appointmentDate": "2024-02-15"
+}
+
+### Create appointment with invalid date format
+POST {{baseUrl}}/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "doctorId": 1,
+  "appointmentDate": "invalid-date",
+  "appointmentTime": "10:30 AM",
+  "visitReason": "Regular checkup",
+  "timezone": "America/New_York"
+}
+
+### Create appointment with invalid time format
+POST {{baseUrl}}/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "doctorId": 1,
+  "appointmentDate": "2024-02-15",
+  "appointmentTime": "invalid-time",
+  "visitReason": "Regular checkup",
+  "timezone": "America/New_York"
+}
+
+### Create appointment without auth (should fail)
+POST {{baseUrl}}/
+Content-Type: application/json
+
+{
+  "doctorId": 1,
+  "appointmentDate": "2024-02-15",
+  "appointmentTime": "10:30 AM",
+  "visitReason": "Regular checkup",
+  "timezone": "America/New_York"
+}

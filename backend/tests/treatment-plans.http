@@ -1,0 +1,28 @@
+### Treatment Plans Routes Tests
+### Make sure your server is running on http://localhost:5000
+
+@baseUrl = http://localhost:5000/api/treatment-plans
+@authToken = YOUR_TOKEN_HERE
+
+### Get all treatment plans (requires auth)
+GET {{baseUrl}}/
+Authorization: Bearer {{authToken}}
+
+### Get treatment plans without auth (should fail)
+GET {{baseUrl}}/
+
+### Get treatment plan by appointment ID (requires auth)
+### Replace 1 with actual appointment ID
+GET {{baseUrl}}/1
+Authorization: Bearer {{authToken}}
+
+### Get treatment plan by non-existent appointment ID
+GET {{baseUrl}}/999
+Authorization: Bearer {{authToken}}
+
+### Get treatment plan with invalid appointment ID
+GET {{baseUrl}}/invalid
+Authorization: Bearer {{authToken}}
+
+### Get treatment plan by appointment ID without auth (should fail)
+GET {{baseUrl}}/1
