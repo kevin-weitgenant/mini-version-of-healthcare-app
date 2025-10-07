@@ -1,6 +1,12 @@
 # Healthcare Management System
 
+🌐 **Live Website**: [https://mini-version-of-healthcare-app.vercel.app](https://mini-version-of-healthcare-app.vercel.app)
+
 A full-stack healthcare application that allows patients to register, book appointments with doctors, view treatment plans, and track their health progress.
+
+**Deployment:**
+- **Frontend**: Deployed on Vercel
+- **Backend**: Deployed on Railway
 
 ## 🏥 Features
 
