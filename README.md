@@ -44,14 +44,11 @@ A full-stack healthcare application that allows patients to register, book appoi
 ### Backend
 - **Runtime**: Node.js with Express.js
 - **Language**: TypeScript
-- **Database**: PostgreSQL with Drizzle ORM
+- **Database**: Neon (PostgreSQL) with Drizzle ORM
 - **Authentication**: JWT tokens with bcrypt password hashing
 
 
-### Database
-- **PostgreSQL**: Primary database with timezone-aware timestamps
-- **ORM**: Drizzle ORM with type-safe queries
-- **Migrations**: Automated schema management
+
 
 ## 📁 Project Structure
 
