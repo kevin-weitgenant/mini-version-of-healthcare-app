@@ -1,12 +1,13 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { db } from '../config/db';
 import { doctorsTable } from '../db/schema';
 import { eq } from 'drizzle-orm';
+import { asyncHandler, DatabaseError, NotFoundError, ValidationError } from '../utils/errorHandler';
 
 const router = express.Router();
 
 // GET /api/doctors - Get all doctors
-router.get('/', async (req, res) => {
+router.get('/', asyncHandler(async (req: Request, res: Response) => {
   try {
     const dbDoctors = await db.select().from(doctorsTable);
     
@@ -21,16 +22,19 @@ router.get('/', async (req, res) => {
     
     res.json({ ok: true, doctors });
   } catch (error) {
-    console.error('Error fetching doctors:', error);
-    res.status(500).json({ ok: false, error: 'Failed to fetch doctors' });
+    throw new DatabaseError('Failed to fetch doctors', error as Error);
   }
-});
+}));
 
 // GET /api/doctors/:id - Get a specific doctor by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', asyncHandler(async (req: Request, res: Response) => {
+  const doctorId = parseInt(req.params.id);
+  
+  if (isNaN(doctorId)) {
+    throw new ValidationError('Invalid doctor ID');
+  }
+  
   try {
-    const doctorId = parseInt(req.params.id);
-    
     const dbDoctor = await db
       .select()
       .from(doctorsTable)
@@ -38,7 +42,7 @@ router.get('/:id', async (req, res) => {
       .limit(1);
     
     if (!dbDoctor || dbDoctor.length === 0) {
-      return res.status(404).json({ ok: false, error: 'Doctor not found' });
+      throw new NotFoundError('Doctor not found');
     }
     
     // Transform rating from integer to decimal
@@ -52,10 +56,12 @@ router.get('/:id', async (req, res) => {
     
     res.json({ ok: true, doctor });
   } catch (error) {
-    console.error('Error fetching doctor:', error);
-    res.status(500).json({ ok: false, error: 'Failed to fetch doctor' });
+    if (error instanceof NotFoundError || error instanceof ValidationError) {
+      throw error;
+    }
+    throw new DatabaseError('Failed to fetch doctor', error as Error);
   }
-});
+}));
 
 export default router;
 

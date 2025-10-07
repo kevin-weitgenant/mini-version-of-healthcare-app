@@ -1,33 +1,41 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { db } from '../config/db';
 import { usersTable } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { hashPassword, verifyPassword } from '../utils/password';
 import { signAccessToken } from '../utils/jwt';
 import { requireAuth } from '../middleware/auth';
+import { 
+  asyncHandler, 
+  ValidationError, 
+  ConflictError, 
+  AuthenticationError,
+  DatabaseError 
+} from '../utils/errorHandler';
 
 const router = express.Router();
 
-router.post('/register', async (req, res) => {
+router.post('/register', asyncHandler(async (req: Request, res: Response) => {
+  const { name, email, password } = req.body ?? {};
+
+  // Input validation
+  if (!name || typeof name !== 'string' || !name.trim()) {
+    throw new ValidationError('Name is required');
+  }
+  if (!email || typeof email !== 'string' || !email.includes('@')) {
+    throw new ValidationError('Valid email is required');
+  }
+  if (!password || typeof password !== 'string' || password.length < 6) {
+    throw new ValidationError('Password must be at least 6 characters long');
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+
   try {
-    const { name, email, password } = req.body ?? {};
-
-    if (!name || typeof name !== 'string' || !name.trim()) {
-      return res.status(400).json({ ok: false, error: 'Invalid name' });
-    }
-    if (!email || typeof email !== 'string' || !email.includes('@')) {
-      return res.status(400).json({ ok: false, error: 'Invalid email' });
-    }
-    if (!password || typeof password !== 'string') {
-      return res.status(400).json({ ok: false, error: 'Invalid password' });
-    }
-
-    const normalizedEmail = email.trim().toLowerCase();
-
-    // Check duplicate
+    // Check for duplicate email
     const existing = await db.select().from(usersTable).where(eq(usersTable.email, normalizedEmail)).limit(1);
     if (existing.length > 0) {
-      return res.status(409).json({ ok: false, error: 'Email already registered' });
+      throw new ConflictError('Email already registered');
     }
 
     const hashed = await hashPassword(password);
@@ -41,56 +49,73 @@ router.post('/register', async (req, res) => {
     const user = inserted[0];
     const token = signAccessToken({ sub: user.id, email: user.email, name: user.name });
 
-    return res.status(201).json({ token, user: { id: user.id, name: user.name, email: user.email } });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Unexpected error';
-    return res.status(500).json({ ok: false, error: message });
+    res.status(201).json({ 
+      ok: true,
+      token, 
+      user: { id: user.id, name: user.name, email: user.email } 
+    });
+  } catch (error) {
+    // Re-throw known errors
+    if (error instanceof ConflictError || error instanceof ValidationError) {
+      throw error;
+    }
+    // Wrap database errors
+    throw new DatabaseError('Registration failed', error as Error);
   }
-});
+}));
 
-router.post('/login', async (req, res) => {
+router.post('/login', asyncHandler(async (req: Request, res: Response) => {
+  const { email, password } = req.body ?? {};
+  
+  // Input validation
+  if (!email || typeof email !== 'string' || !email.includes('@')) {
+    throw new ValidationError('Valid email is required');
+  }
+  if (!password || typeof password !== 'string') {
+    throw new ValidationError('Password is required');
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+
   try {
-    const { email, password } = req.body ?? {};
-    if (!email || typeof email !== 'string' || !email.includes('@')) {
-      return res.status(400).json({ ok: false, error: 'Invalid email' });
-    }
-    if (!password || typeof password !== 'string') {
-      return res.status(400).json({ ok: false, error: 'Invalid password' });
-    }
-
-    const normalizedEmail = email.trim().toLowerCase();
-
     const users = await db.select().from(usersTable).where(eq(usersTable.email, normalizedEmail)).limit(1);
     const user = users[0];
+    
     if (!user) {
-      return res.status(401).json({ ok: false, error: 'Invalid credentials' });
+      throw new AuthenticationError('Invalid credentials');
     }
 
     const valid = await verifyPassword(password, user.password);
     if (!valid) {
-      return res.status(401).json({ ok: false, error: 'Invalid credentials' });
+      throw new AuthenticationError('Invalid credentials');
     }
 
     const token = signAccessToken({ sub: user.id, email: user.email, name: user.name });
-    return res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Unexpected error';
-    return res.status(500).json({ ok: false, error: message });
-  }
-});
-
-router.get('/me', requireAuth, async (req, res) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ ok: false, error: 'Unauthorized' });
+    res.json({ 
+      ok: true,
+      token, 
+      user: { id: user.id, name: user.name, email: user.email } 
+    });
+  } catch (error) {
+    // Re-throw known errors
+    if (error instanceof ValidationError || error instanceof AuthenticationError) {
+      throw error;
     }
-
-    return res.json({ user: { id: req.user.id, name: req.user.name, email: req.user.email } });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Unexpected error';
-    return res.status(500).json({ ok: false, error: message });
+    // Wrap database errors
+    throw new DatabaseError('Login failed', error as Error);
   }
-});
+}));
+
+router.get('/me', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    throw new AuthenticationError('Unauthorized');
+  }
+
+  res.json({ 
+    ok: true,
+    user: { id: req.user.id, name: req.user.name, email: req.user.email } 
+  });
+}));
 
 export default router;
 

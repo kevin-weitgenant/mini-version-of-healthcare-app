@@ -58,15 +58,22 @@ export function RegisterForm() {
       const data = await response.json()
 
       if (!response.ok) {
-        setError(data.error || "Registration failed")
+        // Extract error message from response
+        const errorMessage = data.error || "Registration failed. Please try again."
+        setError(errorMessage)
         return
       }
 
       // Save token and redirect
       localStorage.setItem("token", data.token)
       router.push("/dashboard")
-    } catch {
-      setError("Network error. Please try again.")
+    } catch (error) {
+      // Handle different types of errors
+      if (error instanceof Error) {
+        setError(error.message)
+      } else {
+        setError("Network error. Please try again.")
+      }
     } finally {
       setIsLoading(false)
     }

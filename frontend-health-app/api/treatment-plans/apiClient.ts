@@ -1,4 +1,4 @@
-import type { TreatmentPlan, Medicine } from '@backend/db/schema'
+import type { TreatmentPlan, Medicine } from '../../types/schema'
 import { apiRequest } from "../config"
 
 // Re-export types for components to use

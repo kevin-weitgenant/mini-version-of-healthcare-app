@@ -7,6 +7,7 @@ import doctorsRouter from './routes/doctors';
 import appointmentRouter from './routes/appointment';
 import trackRouter from './routes/track';
 import treatmentPlanRouter from './routes/treatmentPlan';
+import { handleError } from './utils/errorHandler';
 
 // Load environment variables
 dotenv.config();
@@ -16,7 +17,9 @@ const app = express();
 // CORS configuration
 const allowedOrigins = [
   'https://mini-version-of-healthcare-app.vercel.app',  // Production
+  'https://mini-version-of-healthcare-mj23r7xzl.vercel.app',  // New production domain
   /^https:\/\/mini-version-of-healthcare-app-.*\.vercel\.app$/,  // Preview deployments
+  /^https:\/\/mini-version-of-healthcare-.*\.vercel\.app$/,  // Any healthcare app Vercel deployments
   'http://localhost:3000',  // Local development
 ];
 
@@ -90,12 +93,7 @@ app.use('/api/track', trackRouter);
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error('Error:', err);
-  res.status(500).json({
-    ok: false,
-    error: err.message,
-    timestamp: new Date().toISOString()
-  });
+  handleError(err, req, res);
 });
 
 // Catch-all route for unmatched endpoints

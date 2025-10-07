@@ -1,21 +1,28 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { db } from '../config/db';
 import { appointmentsTable, doctorsTable, usersTable, treatmentPlansTable } from '../db/schema';
 import { eq, and } from 'drizzle-orm';
 import { requireAuth } from '../middleware/auth';
 import { generateTreatmentPlan } from '../utils/generateTreatmentPlan';
+import { 
+  asyncHandler, 
+  DatabaseError, 
+  ValidationError, 
+  NotFoundError, 
+  AuthenticationError 
+} from '../utils/errorHandler';
 
 const router = express.Router();
 
 // GET /api/appointments - Get all appointments for the logged-in user
-router.get('/', requireAuth, async (req, res) => {
-  try {
-    const userId = req.user?.id;
-    
-    if (!userId) {
-      return res.status(401).json({ ok: false, error: 'Unauthorized' });
-    }
+router.get('/', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  
+  if (!userId) {
+    throw new AuthenticationError('Unauthorized');
+  }
 
+  try {
     const appointments = await db
       .select({
         id: appointmentsTable.id,
@@ -36,39 +43,38 @@ router.get('/', requireAuth, async (req, res) => {
     
     res.json({ ok: true, appointments });
   } catch (error) {
-    console.error('Error fetching appointments:', error);
-    res.status(500).json({ ok: false, error: 'Failed to fetch appointments' });
+    throw new DatabaseError('Failed to fetch appointments', error as Error);
   }
-});
+}));
 
 // POST /api/appointments - Create a new appointment
-router.post('/', requireAuth, async (req, res) => {
+router.post('/', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  
+  if (!userId) {
+    throw new AuthenticationError('Unauthorized');
+  }
+
+  const { doctorId, appointmentDate, appointmentTime, visitReason, timezone } = req.body;
+
+  // Validation
+  if (!doctorId || typeof doctorId !== 'number') {
+    throw new ValidationError('Invalid doctor ID');
+  }
+  if (!appointmentDate || typeof appointmentDate !== 'string') {
+    throw new ValidationError('Invalid appointment date');
+  }
+  if (!appointmentTime || typeof appointmentTime !== 'string') {
+    throw new ValidationError('Invalid appointment time');
+  }
+  if (!visitReason || typeof visitReason !== 'string' || !visitReason.trim()) {
+    throw new ValidationError('Visit reason is required');
+  }
+  if (!timezone || typeof timezone !== 'string') {
+    throw new ValidationError('Timezone is required');
+  }
+
   try {
-    const userId = req.user?.id;
-    
-    if (!userId) {
-      return res.status(401).json({ ok: false, error: 'Unauthorized' });
-    }
-
-    const { doctorId, appointmentDate, appointmentTime, visitReason, timezone } = req.body;
-
-    // Validation
-    if (!doctorId || typeof doctorId !== 'number') {
-      return res.status(400).json({ ok: false, error: 'Invalid doctor ID' });
-    }
-    if (!appointmentDate || typeof appointmentDate !== 'string') {
-      return res.status(400).json({ ok: false, error: 'Invalid appointment date' });
-    }
-    if (!appointmentTime || typeof appointmentTime !== 'string') {
-      return res.status(400).json({ ok: false, error: 'Invalid appointment time' });
-    }
-    if (!visitReason || typeof visitReason !== 'string' || !visitReason.trim()) {
-      return res.status(400).json({ ok: false, error: 'Visit reason is required' });
-    }
-    if (!timezone || typeof timezone !== 'string') {
-      return res.status(400).json({ ok: false, error: 'Timezone is required' });
-    }
-
     // Verify doctor exists
     const doctor = await db
       .select()
@@ -77,7 +83,7 @@ router.post('/', requireAuth, async (req, res) => {
       .limit(1);
     
     if (!doctor || doctor.length === 0) {
-      return res.status(404).json({ ok: false, error: 'Doctor not found' });
+      throw new NotFoundError('Doctor not found');
     }
 
     // Convert local date/time to UTC for storage
@@ -107,7 +113,7 @@ router.post('/', requireAuth, async (req, res) => {
     // Validate the date is valid
     if (isNaN(localDateTime.getTime())) {
       console.error('Invalid date/time combination:', { appointmentDate, appointmentTime, time24Hour, localDateTimeStr });
-      return res.status(400).json({ ok: false, error: 'Invalid appointment date or time' });
+      throw new ValidationError('Invalid appointment date or time');
     }
     
     const appointmentDateTime = localDateTime;
@@ -154,10 +160,12 @@ router.post('/', requireAuth, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error creating appointment:', error);
-    res.status(500).json({ ok: false, error: 'Failed to create appointment' });
+    if (error instanceof ValidationError || error instanceof NotFoundError) {
+      throw error;
+    }
+    throw new DatabaseError('Failed to create appointment', error as Error);
   }
-});
+}));
 
 export default router;
 
