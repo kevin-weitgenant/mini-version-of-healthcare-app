@@ -37,7 +37,6 @@ A full-stack healthcare application that allows patients to register, book appoi
 - **Framework**: Next.js 15 with React 19
 - **Styling**: Tailwind CSS with shadcn/ui components
 - **State Management**: React Query for server state, React useState for client state
-- **Forms**: React Hook Form with Zod validation (available but using manual form handling)
 - **UI Components**: Radix UI primitives with custom styling
 - **Data Fetching**: React Query (TanStack Query) for efficient server state management
 - **API Architecture**: Centralized API client pattern with custom hooks
@@ -47,7 +46,7 @@ A full-stack healthcare application that allows patients to register, book appoi
 - **Language**: TypeScript
 - **Database**: PostgreSQL with Drizzle ORM
 - **Authentication**: JWT tokens with bcrypt password hashing
-- **Validation**: Zod schemas for request validation
+
 
 ### Database
 - **PostgreSQL**: Primary database with timezone-aware timestamps
