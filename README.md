@@ -36,9 +36,11 @@ A full-stack healthcare application that allows patients to register, book appoi
 ### Frontend
 - **Framework**: Next.js 15 with React 19
 - **Styling**: Tailwind CSS with shadcn/ui components
-- **State Management**: React Query for server state, Zustand for client state
-- **Forms**: React Hook Form with Zod validation
+- **State Management**: React Query for server state, React useState for client state
+- **Forms**: React Hook Form with Zod validation (available but using manual form handling)
 - **UI Components**: Radix UI primitives with custom styling
+- **Data Fetching**: React Query (TanStack Query) for efficient server state management
+- **API Architecture**: Centralized API client pattern with custom hooks
 
 ### Backend
 - **Runtime**: Node.js with Express.js
@@ -194,6 +196,8 @@ The application uses the following main tables:
 - **treatment_plans**: Generated treatment plans with medications
 - **health_tracking**: Patient health progress tracking
 
+
+
 ## 🎨 UI Features
 
 - **Responsive Design**: Mobile-first approach with Tailwind CSS
@@ -230,18 +234,5 @@ This project fulfills all the core requirements specified in the assignment:
 ✅ **Modern Tech Stack**: Next.js, Express.js, PostgreSQL  
 ✅ **Clean Architecture**: Separate frontend and backend folders  
 
-## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
 
-## 📄 License
-
-This project is licensed under the ISC License.
-
----
-
-**Note**: This is a demonstration project for educational purposes. For production healthcare applications, additional security measures, HIPAA compliance, and professional medical oversight would be required.
